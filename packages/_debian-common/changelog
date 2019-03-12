@@ -1,3 +1,30 @@
+libsuperiormysqlpp (0.3.3) unstable; urgency=medium
+
+  [ Radek Smejdir ]
+  * Add ConnectionConfiguration
+
+  [ Tomas Prochazka ]
+  * Removed useless private method DBDriver::Result::close() and substituted with method freeResult()
+  * Fix: Correction of noexcept specifiers in integer converter
+
+  [ Adam Stepan ]
+  * Add a hostname argument to DNS-related logger methods
+  * Propagate return values from mysql_*row_seek methods
+  * Fix dnsa test
+  * Add noexcept qualifier to database driver methods
+  * Fix behavior of makeHexString
+
+  [ Michal Merc ]
+  * fix: crash when destructing moved DBDriver
+
+  [ Peter Opatril ]
+  * Avoid calling memcpy for zero sized ArrayBase.
+  * fix: Improve assertions on compatibility with C client
+  * fix: Typo bug in Nullable::swap
+  * fix: Incorrect error handling of ResultMetadata
+
+ -- Radek Smejdir <radek.smejdir@firma.seznam.cz>  Tue, 12 Mar 2019 13:09:59 +0100
+
 libsuperiormysqlpp (0.3.2) unstable; urgency=medium
 
   [ Radek Smejdir ]

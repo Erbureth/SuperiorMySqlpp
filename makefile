@@ -7,7 +7,7 @@ include ./common.mk
 # if set then must end with '/'
 DESTDIR :=
 
-VERSION := 0.3.1
+VERSION := 0.3.3
 version_numbers :=$(subst ., ,$(VERSION))
 version_major :=$(word 1,$(version_numbers))
 
@@ -72,7 +72,7 @@ endif
 
 test: test-basic test-extended
 
-	
+
 libsuperiormysqlpp.pc: libsuperiormysqlpp.pc.in makefile
 	sed \
          -e 's,@VERSION@,$(VERSION),' \

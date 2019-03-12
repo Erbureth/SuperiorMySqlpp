@@ -1,5 +1,5 @@
 Name:           libsuperiormysqlpp-dev
-Version:        0.3.2
+Version:        0.3.3
 Release:        1%{?dist}
 Summary:        C++ mysql library development files
 
@@ -7,14 +7,14 @@ License:        LGPLv3+
 URL:            http://ftp.gnu.org/gnu/%{name}
 Source0:        http://ftp.gnu.org/gnu/%{name}/%{name}-%{version}.tar.gz
 
-BuildRequires:  docker, gcc-c++, community-mysql-devel, hostname, libasan, libubsan, tree, boost-devel >= 1.49.0
-      
+BuildRequires:  docker, gcc-c++, community-mysql-devel, hostname, libasan, libubsan, tree, boost-devel >= 1.49.0, socat
+
 Requires(post): info
 Requires(preun): info
 
 Suggests: boost-devel >= 1.49.0
 
-%description 
+%description
 C++ mysql library development files
 
 %prep
@@ -34,7 +34,7 @@ make %{_smp_mflags} clean package-fedora-22-clean
 
 %preun
 
-%files 
+%files
 /usr/include/*
 /usr/lib/pkgconfig/*
 

@@ -125,6 +125,36 @@ go_bandit([](){
         it("can use SSL", [&](){
             Connection connection{SslConfiguration{}, s.database, s.user, s.password, s.host, s.port};
         });
+
+        it("can use TCP ConnectionConfiguration without SSL", [&](){
+            ConnectionConfiguration tcpConfig = ConnectionConfiguration::getTcpConnectionConfiguration(s.database, s.user, s.password, s.host, s.port);
+
+            Connection connection{tcpConfig};
+        });
+
+        it("can use TCP ConnectionConfiguration with SSL", [&](){
+            ConnectionConfiguration tcpConfig = ConnectionConfiguration::getSslTcpConnectionConfiguration(SslConfiguration{}, s.database, s.user, s.password, s.host, s.port);
+
+            Connection connection{tcpConfig};
+        });
+
+        it("can use socketed ConnectionConfiguration without SSL", [&](){
+            ConnectionConfiguration socketConfig = ConnectionConfiguration::getSocketConnectionConfiguration(s.database, s.user, s.password, s.socket);
+
+            Connection connection{socketConfig};
+        });
+
+        it("can use socketed ConnectionConfiguration with SSL", [&](){
+            ConnectionConfiguration socketConfig = ConnectionConfiguration::getSslSocketConnectionConfiguration(SslConfiguration{}, s.database, s.user, s.password, s.socket);
+
+            Connection connection{socketConfig};
+        });
+
+        it("does not crash when stealing connection", [&]() {
+            auto& s = getSettingsRef();
+            Connection connection{s.database, s.user, s.password, s.host, s.port};
+            Connection conn2 = std::move(connection);
+        });
     });
 });
 
