@@ -7,7 +7,7 @@ include ./common.mk
 # if set then must end with '/'
 DESTDIR :=
 
-VERSION := 0.3.3
+VERSION := 0.4.0
 version_numbers :=$(subst ., ,$(VERSION))
 version_major :=$(word 1,$(version_numbers))
 
@@ -17,12 +17,12 @@ libdir =$(prefix)/lib
 includedir =$(prefix)/include
 
 INSTALL :=install
-INSTALL_LIB =$(INSTALL) -m 644
-INSTALL_INCLUDE =$(INSTALL) -m 644
+INSTALL_LIB =$(INSTALL) --mode=644
+INSTALL_INCLUDE =$(INSTALL) --mode=644
 
 # Test for presence of boost_system. Currently, only actually needed part is Asio
 # that is used in extended tests and this seems to be reasonably efficient way to detect it.
-BOOST_LIB_PATHS = $(shell /sbin/ldconfig -p | grep 'libboost_system')
+BOOST_LIB_PATHS = $(shell /sbin/ldconfig --print-cache | grep 'libboost_system')
 ifneq ($(BOOST_LIB_PATHS),)
 	HAVE_BOOST_SYSTEM = 1
 else
@@ -36,7 +36,7 @@ endif
 collapse-slashes =$(if $(findstring //,$1),$(call collapse-slashes,$(subst //,/,$1)),$(subst //,/,$1))
 list-directories =$(filter-out $(call collapse-slashes,$(dir $1/)),$(dir $(wildcard $(call collapse-slashes,$1/*/))))
 define make-directory
-$(call collapse-slashes,mkdir -p $1)
+$(call collapse-slashes,mkdir --parents $1)
 
 endef
 
@@ -58,16 +58,16 @@ _print-variables:
 
 # pravidlo pro vsechny adresare (makefile nechape v pravidlech "%/:")
 %/.:
-	mkdir -p $@
+	mkdir --parents $@
 
 
 test-basic:
-	+$(MAKE) -C ./tests/ test
+	+$(MAKE) --directory ./tests/ test
 test-extended:
 ifeq ($(HAVE_BOOST_SYSTEM),1)
-	+$(MAKE) -C ./tests-extended/ test
+	+$(MAKE) --directory ./tests-extended/ test
 else
-	$(error Extended tests skipped - Boost (libboost_system) is required and wasn't detected)
+	$(error Extended tests skipped - Boost (libboost_system) is required and was not detected)
 endif
 
 test: test-basic test-extended
@@ -75,8 +75,8 @@ test: test-basic test-extended
 
 libsuperiormysqlpp.pc: libsuperiormysqlpp.pc.in makefile
 	sed \
-         -e 's,@VERSION@,$(VERSION),' \
-         -e 's,@PREFIX@,$(prefix),' \
+         --expression='s,@VERSION@,$(VERSION),' \
+         --expression='s,@PREFIX@,$(prefix),' \
          libsuperiormysqlpp.pc.in > $@
 
 
@@ -85,20 +85,20 @@ install: $(DESTDIR)$(includedir)/.
 install: libsuperiormysqlpp.pc
 install:
 	$(call recursive-install,$(INSTALL_INCLUDE),./include,*.hpp,$(DESTDIR)$(includedir)/)
-	$(INSTALL) -d $(DESTDIR)/$(libdir)/pkgconfig
-	$(INSTALL) -t $(DESTDIR)/$(libdir)/pkgconfig -m 644 libsuperiormysqlpp.pc
+	$(INSTALL) --directory $(DESTDIR)/$(libdir)/pkgconfig
+	$(INSTALL) --target-directory=$(DESTDIR)/$(libdir)/pkgconfig --mode=644 libsuperiormysqlpp.pc
 
 
 
 clean:
 	find ./ -type f -name "core" -exec $(RM) {} \;
-	+$(MAKE) -C ./tests/ clean
-	+$(MAKE) -C ./tests-extended/ clean
+	+$(MAKE) --directory ./tests/ clean
+	+$(MAKE) --directory ./tests-extended/ clean
 
 clean-all: clean packages-clean-all
 
 
-deb_packages := debian-stretch debian-jessie szn-debian-wheezy
+deb_packages := debian-stretch debian-jessie
 rpm_packages := fedora-22
 packages := $(deb_packages) $(rpm_packages)
 
@@ -107,7 +107,7 @@ package-$1-build:
 	+cd packages/$1/dpkg-jail/ && dpkg-buildpackage -j$(CONCURRENCY) -B -us -uc
 
 package-$1-build-install-dependencies:
-	cd packages/$1/dpkg-jail/ && mk-build-deps -i -r -t 'apt-get -f -y'
+	cd packages/$1/dpkg-jail/ && mk-build-deps --install --remove --tool 'apt-get --fix-broken --assume-yes'
 
 package-$1-clean:
 	+$(if $(shell which dh_clean 2>&1 2>/dev/null),cd packages/$1/dpkg-jail/ && dh_clean,)
@@ -138,10 +138,10 @@ package-$1-build:
 	*.spec)
 
 package-$1-build-install-dependencies:
-	cd packages/$1/ && dnf builddep -y *.spec
+	cd packages/$1/ && dnf builddep --assumeyes *.spec
 
 package-$1-clean:
-	$(RM) -R $(abspath ./)/packages/$1/rpmbuild/
+	$(RM) --recursive $(abspath ./)/packages/$1/rpmbuild/
 
 package-$1-clean-packages:
 	$(RM) packages/$1/*.rpm
@@ -155,15 +155,16 @@ $(eval $(foreach package,$(rpm_packages),$(call rpm-package,$(package))))
 
 
 ifneq "$(CONCURRENCY)" ""
-docker_run_concurrency :=-e "CONCURRENCY=$(CONCURRENCY)"
+docker_run_concurrency :=--env="CONCURRENCY=$(CONCURRENCY)"
 endif
 
 # LeakSanitizer (lsan) needs ptrace and by default docker denies it
 define any-package
 package-$1-dbuild:
 	cd packages/$1/ && $(docker_build) --tag=package-$1-dbuild .
-	docker run --name $(IMAGE_PREFIX)dbuild-$1 -t -v /var/run/docker.sock:/var/run/docker.sock -v `pwd`:/dbuild/sources $(docker_run_concurrency) --cap-add SYS_PTRACE package-$1-dbuild
-	docker rm $(IMAGE_PREFIX)dbuild-$1 2>&1 1>/dev/null
+	docker run --rm --name $(IMAGE_PREFIX)dbuild-$1 --tty $(docker_run_concurrency) --cap-add SYS_PTRACE \
+		--volume=/var/run/docker.sock:/var/run/docker.sock --volume=`pwd`:/dbuild/sources \
+		package-$1-dbuild
 
 .PHONY: package-$1-dbuild
 
@@ -183,7 +184,7 @@ packages-dbuild: $(foreach package,$(packages),package-$(package)-dbuild )
 
 
 package-tar.gz: clean-all
-	tar -czf libsuperiormysqlpp-$(VERSION).tar.gz *
+	tar --create --gzip --file=libsuperiormysqlpp-$(VERSION).tar.gz *
 
 package-tar.xz: clean-all
-	tar -cJf libsuperiormysqlpp-$(VERSION).tar.xz *
+	tar --create --xz --file=libsuperiormysqlpp-$(VERSION).tar.xz *
