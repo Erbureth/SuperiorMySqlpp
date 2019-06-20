@@ -1,3 +1,15 @@
+libsuperiormysqlpp (0.5.0) unstable; urgency=medium
+
+  [ Peter Opatril ]
+  * refactor: Logging system (DRY)
+  * feat: Default logger logs errors
+
+  [ Michal Merc ]
+  * feat: Implement psQuery/psParamQuery/psResultQuery convenience functions
+  * refactor: Change order of arguments for psQuery/psParamQuery/psResultQuery functions before release
+
+ -- Peter Opatril <petr.opatril@firma.seznam.cz>  Thu, 20 Jun 2019 12:33:09 +0000
+
 libsuperiormysqlpp (0.4.0) unstable; urgency=medium
 
   !!! ---- BREAKING API CHANGE ---- !!!
