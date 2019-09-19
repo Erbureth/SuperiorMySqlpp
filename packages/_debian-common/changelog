@@ -1,3 +1,13 @@
+libsuperiormysqlpp (0.5.2) unstable; urgency=medium
+
+  [ Peter Opatril ]
+  * fix: silence expected connection errors in tests
+
+  [ Michal Merc ]
+  * feat: ignore timestamp signedness
+
+ -- Peter Opatril <petr.opatril@firma.seznam.cz>  Thu, 19 Sep 2019 14:18:42 +0200
+
 libsuperiormysqlpp (0.5.1) unstable; urgency=medium
 
   [ Radek Smejdir ]
